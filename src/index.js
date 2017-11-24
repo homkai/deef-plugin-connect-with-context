@@ -5,24 +5,11 @@ import invariant from 'invariant';
 const cache = new Map();
 
 const setCache = (path, value) => {
-    Array.isArray(path) || (path = [path]);
-    path.reduce((level, key, index) => {
-        if (path.length - index > 1) {
-            !level.get(key) && level.set(key, new Map());
-            return level.get(key);
-        }
-        level.set(key, value);
-    }, cache);
+    cache.set(path, value);
 };
 
 const getCache = path => {
-    Array.isArray(path) || (path = [path]);
-    return path.reduce((level, key) => {
-        if (!level || !level.has(key)) {
-            return;
-        }
-        return level.get(key);
-    }, cache);
+    return cache.get(path);
 };
 /* utils end */
 
