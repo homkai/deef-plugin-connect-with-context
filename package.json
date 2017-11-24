@@ -1,0 +1,49 @@
+{
+  "name": "deef-plugin-connect-with-context",
+  "version": "0.1.0",
+  "description": "deef plugin to support build large common business components",
+  "main": "./lib/index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/homkai/deef-plugin-connect-with-context"
+  },
+  "homepage": "https://github.com/homkai/deef-plugin-connect-with-context",
+  "keywords": [
+    "deef",
+    "react",
+    "redux",
+    "plugin",
+    "connect-with-context",
+    "common-component",
+    "abstract-model"
+  ],
+  "authors": [
+    "Homkai"
+  ],
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/homkai/deef-plugin-connect-with-context/issues"
+  },
+  "dependencies": {
+    "invariant": "^2.2.1"
+  },
+  "peerDependencies": {
+    "react": "15.x",
+    "react-dom": "15.x"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-plugin-transform-async-to-generator": "^6.24.1",
+    "babel-plugin-transform-object-rest-spread": "^6.23.0",
+    "babel-preset-env": "^1.6.1",
+    "babel-preset-react": "^6.24.1"
+  },
+  "scripts": {
+    "build": "babel src --out-dir lib"
+  },
+  "files": [
+    "src",
+    "lib",
+    "README.md"
+  ]
+}
