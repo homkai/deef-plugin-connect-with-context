@@ -83,44 +83,47 @@ export const handleWithContext = (modelContext, handler) => {
     };
 };
 
-export const extendModel = (model2, options, model1) => {
-    if (!model1 && options.namespace) {
-        model1 = options;
+export const extendModel = (absModel, options, mainModel) => {
+    if (!mainModel && options.namespace) {
+        mainModel = options;
         options = {};
     }
     const {prefix = ''} = options;
 
-    // model2 namespace 检查
-    invariant(/^\$/.test(model2.namespace), `[connectWithContext] Abstract model's namespace must start with \`$\`.`);
+    // absModel namespace 检查
+    invariant(/^\$/.test(absModel.namespace), `[connectWithContext] Abstract model's namespace must start with \`$\`.`);
     // 重复字段检查
     ['state', 'reducers'].forEach(key => {
-        Object.keys(model1[key]).forEach(item => {
+        Object.keys(mainModel[key]).forEach(item => {
+            const absModelProp = absModel[key][item];
             invariant(
-                !model2[key].hasOwnProperty(item),
-                `[connectWithContext] Main model has already defined \`${key}.${item}\``
+                !absModel[key].hasOwnProperty(item)
+                // 允许mainModel中把abstract model的state作为initial state整合，但仅支持引用类型的state以引用方式整合
+                || (absModelProp && typeof absModelProp === 'object' && absModelProp === mainModel[key][item]),
+                `[connectWithContext] Main model \`${mainModel.namespace}\` has already defined \`${key}.${item}\``
             );
         });
     });
     return {
-        namespace: model1.namespace,
+        namespace: mainModel.namespace,
         state: {
-            ...model1.state,
-            ...(!prefix ? model2.state : Object.keys(model2.state).reduce((ret, key) => {
-                ret[prefix + key] = model2.state[key];
+            ...mainModel.state,
+            ...(!prefix ? absModel.state : Object.keys(absModel.state).reduce((ret, key) => {
+                ret[prefix + key] = absModel.state[key];
                 return ret;
             }, {}))
         },
         reducers: {
-            ...model1.reducers,
-            ...(!prefix ? model2.reducers : Object.keys(model2.reducers).reduce((ret, key) => {
+            ...mainModel.reducers,
+            ...(!prefix ? absModel.reducers : Object.keys(absModel.reducers).reduce((ret, key) => {
                 ret[prefix + key] = (state, action) => {
-                    const prefixedState = Object.keys(model2.state).reduce((ret, key) => {
+                    const prefixedState = Object.keys(absModel.state).reduce((ret, key) => {
                         ret[key.substr(prefix.length)] = state[key];
                         delete ret[key];
                         return ret;
                     }, {...state});
-                    const nextState = model2.reducers[key](prefixedState, action);
-                    return Object.keys(model2.state).reduce((ret, key) => {
+                    const nextState = absModel.reducers[key](prefixedState, action);
+                    return Object.keys(absModel.state).reduce((ret, key) => {
                         ret[prefix + key] = nextState[key];
                         delete nextState[key];
                         return ret;
@@ -158,8 +161,9 @@ export default app => (getUIState, callbacks = {}, ...connectArgs) => {
                     Component = getCache(cachePath);
                     if (!Component) {
                         const modelConfig = getModelConfig(modelCtx);
-                        const wrappedModelGetUIState = (state, ...args) => {
-                            return getUIState(proxyStateForModel(state, modelConfig), ...args);
+                        const wrappedModelGetUIState = (...args) => {
+                            const [state, ...extArgs] = args;
+                            return getUIState(proxyStateForModel(state, modelConfig), ...extArgs);
                         };
                         const wrappedModelCallbacks = Object.keys(callbacks).reduce((ret, key) => {
                             ret[key] = ({dispatch, getState}, ...args) => {
