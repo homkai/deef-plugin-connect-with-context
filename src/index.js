@@ -57,7 +57,8 @@ const wrapDispatchWithModelContext = (dispatch, modelConfig) => {
         });
     };
 };
-const proxyStateForModel = (state, modelConfig) => {
+const proxyStateForModel = (st, modelConfig) => {
+    const state = {...st};
     Object.keys(modelConfig).forEach(key => {
         const {namespace, prefix} = modelConfig[key];
         !state.hasOwnProperty(key) && Object.defineProperty(state, key, {
